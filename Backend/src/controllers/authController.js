@@ -31,7 +31,7 @@ const signup = async (req, res) => {
       maxAge: 3600000, // 1 hour
       path: '/',
     });
-    res.json({ message: 'signUp successfully', user: { id: user._id, email: user.email, username: user.username } });
+    res.json({ message: 'signUp and Login successfully', user: { id: user._id, email: user.email, username: user.username } });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -71,7 +71,7 @@ const login = async (req, res) => {
 
 const getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id); // Exclude password
+    const user = await User.findById(req.user.id); 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -86,4 +86,20 @@ const logout = async (req, res) => {
   res.json({ message: 'Logged out successfully' });
 };
 
-module.exports = { signup, login, getProfile, logout };
+const googleCallback = async (req, res) => {
+  try {
+    const user = req.user;
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 3600000,
+      path: '/',
+    });
+    res.json({message : 'auth using google successfully'}); // Redirect to frontend
+  } catch (error) {
+    res.status(500).json({ message: 'Google auth failed', error: error.message });
+  }
+};
+
+module.exports = { signup, login, getProfile, logout, googleCallback };
