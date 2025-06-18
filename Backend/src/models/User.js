@@ -5,6 +5,11 @@ const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true, trim: true },
   password: { type: String }, // Optional for Google users
   googleId: { type: String, unique: true, sparse: true }, // For Google Auth
+  role: { 
+    type: String, 
+    enum: ['student', 'problem-setter', 'admin'], 
+    default: 'student' 
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

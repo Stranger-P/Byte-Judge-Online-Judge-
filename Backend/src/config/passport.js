@@ -23,6 +23,7 @@ passport.use(new GoogleStrategy({
         googleId: profile.id,
         email: profile.emails[0].value,
         username: profile.displayName.replace(/\s/g, '').toLowerCase() + Math.floor(Math.random() * 1000),
+        role: 'student',
       });
       await user.save();
     }

@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const generateToken = (userId) => {
+const generateToken = (userId, role) => {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
     expiresIn: '1h',
   });
@@ -23,7 +23,7 @@ const signup = async (req, res) => {
     const user = new User({ email, username, password: hashedPassword });
     await user.save();
     
-    const token = generateToken(user._id);
+    const token = generateToken(user._id, user.role);
     
     res.cookie('token', token, {
       httpOnly: true,
@@ -55,7 +55,7 @@ const login = async (req, res) => {
       return res.status(400).json({ message: 'Invalid email or password' });
     }
     // Create JWT
-    const token = generateToken(user._id);
+    const token = generateToken(user._id, user.role);;
     // Set cookie
     res.cookie('token', token, {
       httpOnly: true,
@@ -89,7 +89,7 @@ const logout = async (req, res) => {
 const googleCallback = async (req, res) => {
   try {
     const user = req.user;
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = generateToken(user._id, user.role);
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

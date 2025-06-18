@@ -5,7 +5,7 @@ const dotenv = require('dotenv');
 const connectDB = require('./src/config/db');
 const authRoutes = require('./src/routes/authRoutes');
 const passport = require('passport');
-
+const adminRoutes = require('./src/routes/adminRoutes');
 dotenv.config();
 require('./src/config/passport'); 
 const app = express();
@@ -19,11 +19,14 @@ app.use(cors({
 }));
 app.use(cookieParser());             
 app.use(express.json());           
-app.use(express.urlencoded({extended: true}))
+app.use(express.urlencoded({extended: true}));
 app.use(passport.initialize());
 
 // Routes
 app.use('/api/auth', authRoutes);   
+app.use('/api/admin', adminRoutes);
+
+
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
