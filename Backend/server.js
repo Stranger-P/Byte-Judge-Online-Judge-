@@ -6,6 +6,7 @@ const connectDB = require('./src/config/db');
 const authRoutes = require('./src/routes/authRoutes');
 const passport = require('passport');
 const adminRoutes = require('./src/routes/adminRoutes');
+const problemRoutes = require('./src/routes/problemRoutes');
 dotenv.config();
 require('./src/config/passport'); 
 const app = express();
@@ -25,7 +26,7 @@ app.use(passport.initialize());
 // Routes
 app.use('/api/auth', authRoutes);   
 app.use('/api/admin', adminRoutes);
-
+app.use('/api/problems', problemRoutes); 
 
 const PORT = 3000;
 app.listen(PORT, () => {
