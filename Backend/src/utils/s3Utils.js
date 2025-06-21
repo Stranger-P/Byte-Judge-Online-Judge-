@@ -15,7 +15,7 @@ const uploadToS3 = async (file, problemId) => {
       throw new Error('Invalid file object');
     }
 
-    const key = `test-cases/${problemId}-${Date.now()}.txt`;
+    const key = `test-cases/${problemId}-${Date.now()}.json`;
 
     const command = new PutObjectCommand({
       Bucket: process.env.AWS_S3_BUCKET_NAME,
