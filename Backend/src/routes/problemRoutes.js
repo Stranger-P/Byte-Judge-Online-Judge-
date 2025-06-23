@@ -15,22 +15,6 @@ const router = express.Router();
 
 
 
-router.post('/dummy', upload.single('testCaseFile'), async (req, res) => {
-  try {
-    const file = req.file;
-    if (!file) {
-      return res.status(400).json({ error: 'No file uploaded' });
-    }
-
-    const url = await uploadToS3(file, 'temp');
-    res.status(200).json({ message: 'Upload successful', url });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'File upload failed' });
-  }
-});
-
-
 
 router.post('/', 
   authMiddleware, 

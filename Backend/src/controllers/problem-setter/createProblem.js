@@ -9,12 +9,14 @@ const createProblem = async (req, res) => {
     outputFormat, 
     constraints, 
     sampleTestCases, 
-    testCases, 
-    explanation, 
-    isPublished 
+    testCases,   
+    explanation,
+    isPublished,
+    difficulty,
+    tags
   } = req.body;
   const testCaseFile = req.file;
-
+  
   try {
     const existingProblem = await Problem.findOne({ title });
     if (existingProblem) {
@@ -45,6 +47,18 @@ const createProblem = async (req, res) => {
       }
     }
 
+    let parsedTags = [];
+    if (tags) {
+      try {
+        parsedTags = JSON.parse(tags);
+        if (!Array.isArray(parsedTags)) {
+          return res.status(400).json({ message: 'tags must be an array' });
+        }
+      } catch (error) {
+        return res.status(400).json({ message: 'Invalid tags JSON format' });
+      }
+    }
+
     let testCaseS3Url = '';
     if (testCaseFile) {
       testCaseS3Url = await uploadToS3(testCaseFile, 'temp');
@@ -64,6 +78,8 @@ const createProblem = async (req, res) => {
       explanation,
       createdBy: req.user.id,
       isPublished: isPublished === 'true',
+      difficulty: difficulty || 'Medium',
+      tags: parsedTags,
     });
 
     await problem.save();
@@ -76,7 +92,7 @@ const createProblem = async (req, res) => {
 
     res.status(201).json({ message: 'Problem created', problem });
   } catch (error) {
-    res.status(500).json({ message: 'Server error1', error: error.message });
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 

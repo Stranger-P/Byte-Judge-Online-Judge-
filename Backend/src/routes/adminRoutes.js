@@ -9,4 +9,4 @@ router.get('/', authMiddleware, roleMiddleware(['admin']), (req, res) => {
 router.get('/users', authMiddleware, roleMiddleware(['admin']), getUsers);
 router.put('/users/role', authMiddleware, roleMiddleware(['admin']), updateUserRole);
 
-module.exports = router;
+module.exports = router;  

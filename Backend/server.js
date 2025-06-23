@@ -7,6 +7,7 @@ const authRoutes = require('./src/routes/authRoutes');
 const passport = require('passport');
 const adminRoutes = require('./src/routes/adminRoutes');
 const problemRoutes = require('./src/routes/problemRoutes');
+const submissionRoutes = require('./src/routes/submissionRoutes')
 dotenv.config();
 require('./src/config/passport'); 
 const app = express();
@@ -15,7 +16,7 @@ const app = express();
 connectDB();
 
 app.use(cors({
-  origin: 'http://localhost:3000',  // Allow frontend origin
+  origin: 'http://localhost:5173',  // Allow frontend origin
   credentials: true                 // Allow cookies from cross-origin
 }));
 app.use(cookieParser());             
@@ -27,6 +28,8 @@ app.use(passport.initialize());
 app.use('/api/auth', authRoutes);   
 app.use('/api/admin', adminRoutes);
 app.use('/api/problems', problemRoutes); 
+app.use('/api/submissions', submissionRoutes);
+
 
 const PORT = 3000;
 app.listen(PORT, () => {

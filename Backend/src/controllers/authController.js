@@ -24,7 +24,6 @@ const signup = async (req, res) => {
     await user.save();
     
     const token = generateToken(user._id, user.role);
-    
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -55,7 +54,7 @@ const login = async (req, res) => {
       return res.status(400).json({ message: 'Invalid email or password' });
     }
     // Create JWT
-    const token = generateToken(user._id, user.role);;
+    const token = generateToken(user._id, user.role);
     // Set cookie
     res.cookie('token', token, {
       httpOnly: true,
