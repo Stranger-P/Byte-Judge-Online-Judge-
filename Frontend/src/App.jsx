@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 // import ProtectedRoute from "@/components/common/ProtectedRoute";
 import CreateProblemPage from "./pages/problems/CreateProblemPage";
 import ProblemsPage from "./pages/problems/ProblemsPage";
+import ProblemViewPage from "./pages/problems/ProblemViewPage";
+import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
@@ -59,6 +61,18 @@ const App = () => (
             <Route 
               path={ROUTES.PROBLEMS} 
               element={<ProblemsPage />} 
+            />
+             <Route 
+              path={ROUTES.ADMIN_USERS} 
+              element={
+                // <ProtectedRoute>
+                  <AdminUsersPage />
+                // </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path='/problem/detail' 
+              element={<ProblemViewPage />} 
             />
           </Routes>
         </BrowserRouter>

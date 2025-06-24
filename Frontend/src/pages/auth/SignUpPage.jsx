@@ -92,7 +92,7 @@ const SignupPage = () => {
       <h1 className="text-3xl font-bold text-white mb-1 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
         CodeJudge
       </h1>
-      <p className="text-slate-400 text-base">Welcome back to your coding journey</p>
+      <p className="text-slate-400 text-base">Start your coding journey today</p>
     </div>
 
         <Card className="border-slate-700 bg-slate-800/50 backdrop-blur">
