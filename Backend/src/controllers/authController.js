@@ -2,7 +2,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const generateToken = (userId, role) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
+  return jwt.sign({ id: userId, role }, process.env.JWT_SECRET, {
     expiresIn: '1h',
   });
 };
@@ -22,29 +22,31 @@ const signup = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({ email, username, password: hashedPassword });
     await user.save();
-    
     const token = generateToken(user._id, user.role);
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 3600000, // 1 hour
+      maxAge: 360000, 
       path: '/',
     });
-    res.json({ message: 'signUp and Login successfully', user: { id: user._id, email: user.email, username: user.username } });
+    // console.log(user);
+    res.json({ success: 'true' ,message: 'signUp and Login successfully', user: { id: user._id, email: user.email, username: user.username } });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
 const login = async (req, res) => {
-  const { email, password } = req.body;
+  const { username, password } = req.body;
+  // console.log(email);
   try {
     // Validate input
-    if (!email || !password) {
+    if (!username || !password) {
       return res.status(400).json({ message: 'Email and password are required' });
     }
     // Find user
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ username });
+    console.log(user);
     if (!user) {
       return res.status(400).json({ message: 'Invalid email or password' });
     }
@@ -59,10 +61,10 @@ const login = async (req, res) => {
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 3600000, // 1 hour
+      maxAge: 360000, 
       path: '/',
     });
-    res.json({ message: 'Login successful', user: { id: user._id, email: user.email, username: user.username } });
+    res.json({success: 'true', message: 'Login successful', user: { id: user._id, email: user.email, username: user.username, role: user.role } });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -74,13 +76,14 @@ const getProfile = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    res.json({ user });
+    res.json({ success : 'true',user: { id: user._id, email: user.email, username: user.username, role: user.role} });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
 const logout = async (req, res) => {
+
   res.cookie('token', '', { maxAge: 0, httpOnly: true, path: '/' });
   res.json({ message: 'Logged out successfully' });
 };
@@ -88,14 +91,15 @@ const logout = async (req, res) => {
 const googleCallback = async (req, res) => {
   try {
     const user = req.user;
+    console.log(user);
     const token = generateToken(user._id, user.role);
-    res.cookie('token', token, {
+    res.cookie('token', token, {   
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       maxAge: 3600000,
       path: '/',
     });
-    res.json({message : 'auth using google successfully'}); // Redirect to frontend
+    res.redirect("http://localhost:5173/dashboard") // Redirect to frontend
   } catch (error) {
     res.status(500).json({ message: 'Google auth failed', error: error.message });
   }
