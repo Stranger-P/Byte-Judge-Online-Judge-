@@ -1,15 +1,31 @@
 const Problem = require('../../models/Problem');
-
 const getProblems = async (req, res) => {
-  try {
-    const query = req.user.role === 'student' 
-      ? { isPublished: true, isDeleted: false } 
-      : { isDeleted: false };
-    const problems = await Problem.find(query).select('title createdAt isPublished');
-    res.json(problems);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-};
+  const { page = 1, limit = 10, search, difficulty, tag, sort } = req.query
+  const filter = {}
 
+  if (search) {
+    filter.title = { $regex: search, $options: 'i' }
+  }
+  if (difficulty && difficulty !== 'all') {
+    filter.difficulty = difficulty
+  }
+  if (tag && tag !== 'all') {
+    filter.tags = tag
+  }
+
+  let query = Problem.find(filter)
+
+  // sorting
+  if (sort === 'oldest') {
+    query = query.sort({ createdAt: 1 })
+  } else {
+    query = query.sort({ createdAt: -1 })
+  }
+
+  const skip = (page - 1) * limit
+  const total = await Problem.countDocuments(filter)
+  const data  = await query.skip(skip).limit(+limit)
+
+  res.json({ total, data })
+};
 module.exports = getProblems;
