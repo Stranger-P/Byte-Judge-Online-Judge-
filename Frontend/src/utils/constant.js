@@ -38,6 +38,7 @@ export const ROUTES = {
   PROFILE: '/profile',
   ADMIN: '/admin',
   ADMIN_USERS: '/admin/users',
+  CREATED_PROBLEM: '/problems/mine',
   NOT_FOUND: '/404',
 };
 
