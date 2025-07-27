@@ -1,305 +1,274 @@
-import React, { useState } from 'react';
-// import { useQuery } from '@tanstack/react-query'; // Commented out as we are using hardcoded data
-import { Link } from 'react-router-dom';
-import { Search, Plus, Edit, Trash2, Eye, Filter, Code2, Trophy, Star, Zap } from 'lucide-react';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
+// src/pages/problems/ProblemsPage.jsx
+// src/pages/problems/ProblemsPage.jsx
+import React, { useState } from 'react'
+import { Search, CheckCircle, Clock, XCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import axios from 'axios'
+import { useQuery } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
+import { Button } from '../../components/ui/button'
+import { Input } from '../../components/ui/input'
+import { Card } from '../../components/ui/card'
 import {
   Table,
-  TableBody,
-  TableCell,
-  TableHead,
   TableHeader,
   TableRow,
-} from '../../components/ui/table';
+  TableHead,
+  TableBody,
+  TableCell
+} from '../../components/ui/table'
 import {
   Select,
+  SelectTrigger,
   SelectContent,
   SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../../components/ui/select';
-import { Badge } from '../../components/ui/badge';
-import Layout from '../../components/layout/Layout';
-// import LoadingSpinner from '@/components/common/LoadingSpinner'; // Not needed with hardcoded data
-// import { problemsService } from '@/services/problems'; // Commented out as we are not fetching from a service
-// import { useAuth } from '@/hooks/auth/useAuth'; // Commented out to hardcode user role
-import { ROUTES, USER_ROLES } from '../../utils/constant';
+  SelectValue
+} from '../../components/ui/select'
+import { Badge } from '../../components/ui/badge'
+import Layout from '../../components/layout/Layout'
+import { useToast } from '../../hooks/use-toast'
 
-const ProblemsPage = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [difficultyFilter, setDifficultyFilter] = useState('all');
-  // const [page, setPage] = useState(1); // Page state is not needed for hardcoded data
-  // const { user } = useAuth(); // Hardcoding user role for demonstration
 
-  // const isAdmin = user?.role === USER_ROLES.ADMIN;
-  // const isProblemSetter = user?.role === USER_ROLES.PROBLEM_SETTER;
-  // Hardcode to true to show admin/problem-setter controls for demonstration purposes
-  const canManageProblems = true;
+export default function ProblemsPage() {
+  const [searchTerm, setSearchTerm]       = useState('')
+  const [difficultyFilter, setDifficulty] = useState('all')
+  const [tagFilter, setTagFilter]         = useState('all')
+  const [sortOrder, setSortOrder]         = useState('newest')
+  const [page, setPage]                   = useState(1)
+  const pageSize = 10
+  const { toast } = useToast()
+  // {console.log(Heloo);}
+  // fetch available tags
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const { data: allTags = [] } = useQuery({
+    queryKey: ['allTags'],
+    queryFn: () =>
+      axios
+        .get(`${BASE_URL}/api/problems/tag`, { withCredentials: true })
+        .then(res => res.data),
+    staleTime: 60_000,
+  })
 
-  // --- Start of Hardcoded Data ---
+  // fetch paged, filtered, sorted problems
+  const { data, isLoading } = useQuery({
+    queryKey: [
+      'problems',
+      page,
+      searchTerm,
+      difficultyFilter,
+      tagFilter,
+      sortOrder
+    ],
+    queryFn: () =>
+      axios
+        .get(`${BASE_URL}/api/problems`, {
+          params: {
+            page,
+            limit: pageSize,
+            search: searchTerm || undefined,
+            difficulty: difficultyFilter !== 'all' ? difficultyFilter : undefined,
+            tag: tagFilter !== 'all' ? tagFilter : undefined,
+            sort: sortOrder
+          },
+          withCredentials: true
+        })
+        .then(res => res.data),
+    keepPreviousData: true
+  })
 
-  // The useQuery hook is commented out to use static data below.
-  // const { data: problemsData, isLoading } = useQuery({
-  //   queryKey: ['problems', page, searchTerm],
-  //   queryFn: () => problemsService.getProblems({ page, limit: 10 }),
-  // });
+  const total      = data?.total  || 0
+  const problems   = data?.data   || []
+  const totalPages = Math.ceil(total / pageSize)
+  const startItem  = (page - 1) * pageSize + 1
+  const endItem    = Math.min(page * pageSize, total)
 
-  const hardcodedProblems = [
-    {
-      id: '1',
-      title: 'Two Sum',
-      difficulty: 'easy',
-      tags: ['array', 'hash-table'],
-      createdAt: '2023-10-26T10:00:00Z',
-    },
-    {
-      id: '2',
-      title: 'Longest Substring Without Repeating Characters',
-      difficulty: 'medium',
-      tags: ['string', 'sliding-window', 'hash-table'],
-      createdAt: '2023-10-25T12:30:00Z',
-    },
-    {
-      id: '3',
-      title: 'Median of Two Sorted Arrays',
-      difficulty: 'hard',
-      tags: ['array', 'binary-search', 'divide-and-conquer'],
-      createdAt: '2023-10-24T15:45:00Z',
-    },
-    {
-      id: '4',
-      title: 'Validate Binary Search Tree',
-      difficulty: 'medium',
-      tags: ['tree', 'depth-first-search', 'recursion'],
-      createdAt: '2023-10-23T09:00:00Z',
-    },
-    {
-      id: '5',
-      title: 'Implement Queue using Stacks',
-      difficulty: 'easy',
-      tags: ['stack', 'queue', 'data-structures', 'design'],
-      createdAt: '2023-10-22T18:00:00Z',
-    },
-    {
-      id: '6',
-      title: 'Trapping Rain Water',
-      difficulty: 'hard',
-      tags: ['array', 'two-pointers', 'stack', 'dynamic-programming'],
-      createdAt: '2023-10-21T11:20:00Z',
-    },
-    {
-      id: '7',
-      title: 'Reverse Linked List',
-      difficulty: 'easy',
-      tags: ['linked-list', 'recursion'],
-      createdAt: '2023-10-20T14:00:00Z',
-    },
-  ];
+  function getDifficultyColor(diff) {
+    return diff === 'easy'
+      ? 'text-green-400'
+      : diff === 'medium'
+      ? 'text-yellow-400'
+      : diff === 'hard'
+      ? 'text-red-400'
+      : 'text-gray-300'
+  }
 
-  // Mimic the structure of the data that would be returned by react-query and the service
-  const problemsData = {
-    data: hardcodedProblems,
-  };
-
-  // With hardcoded data, the page is never in a loading state.
-  // const isLoading = false;
-
-  // --- End of Hardcoded Data ---
-
-  const getDifficultyBadgeVariant = (difficulty) => {
-    switch (difficulty) {
-      case 'easy':
-        return 'default';
-      case 'medium':
-        return 'secondary';
-      case 'hard':
-        return 'destructive';
-      default:
-        return 'normal';
-    }
-  };
-
-  const getDifficultyIcon = (difficulty) => {
-    switch (difficulty) {
-      case 'easy':
-        return <Star className="h-4 w-4 text-green-400" />;
-      case 'medium':
-        return <Zap className="h-4 w-4 text-yellow-400" />;
-      case 'hard':
-        return <Trophy className="h-4 w-4 text-red-400" />;
-      default:
-        return <Code2 className="h-4 w-4" />;
-    }
-  };
-
-  // The loading spinner component is not needed when data is hardcoded.
-  // if (isLoading) {
-  //   return (
-  //     <Layout>
-  //       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-  //         <LoadingSpinner />
-  //       </div>
-  //     </Layout>
-  //   );
-  // }
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center">
+          <span className="text-gray-400">Loading…</span>
+        </div>
+      </Layout>
+    )
+  }
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
-        {/* Background decoration */}
-        <div className="absolute inset-0 opacity-10 pointer-events-none">
-          <div className="absolute top-20 left-10 w-32 h-32 bg-purple-500 rounded-full blur-xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-10 w-40 h-40 bg-blue-500 rounded-full blur-xl animate-pulse delay-1000"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-purple-600 rounded-full blur-2xl animate-pulse delay-500"></div>
-        </div>
+      <div className="min-h-screen bg-slate-900 text-white">
+        <div className="container mx-auto px-4 py-6 max-w-6xl">
 
-        <div className="container mx-auto py-8 px-4 relative z-10">
-          {/* Header Section */}
-          <div className="flex justify-between items-center mb-8 animate-fade-in">
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl">
-                <Code2 className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-5xl font-bold text-white mb-2">Problems</h1>
-                <p className="text-slate-300 text-lg">
-                  Practice coding problems and improve your skills
-                </p>
-              </div>
-            </div>
-            {canManageProblems && (
-              <Link to={ROUTES.CREATE_PROBLEM}>
-                <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-purple-500/25 transition-all duration-300 hover:scale-105">
-                  <Plus className="mr-2 h-5 w-5" />
-                  Create Problem
-                </Button>
-              </Link>
-            )}
+          {/* Header */}
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold">Problems</h1>
+            <p className="text-gray-400">Solve algorithm & data structure problems</p>
           </div>
 
-          {/* Search and Filter Section */}
-          <Card className="mb-6 border-slate-700 bg-slate-800/30 backdrop-blur-lg animate-slide-up">
-            <CardHeader>
-              <div className="flex items-center space-x-3">
-                <Search className="h-6 w-6 text-purple-400" />
-                <div>
-                  <CardTitle className="text-white">Browse Problems</CardTitle>
-                  <CardDescription className="text-slate-400">
-                    Find problems by title, difficulty, or tags
-                  </CardDescription>
-                </div>
+          {/* Search + Filters */}
+          <Card className="bg-slate-800 mb-6 p-4">
+            <p className="text-gray-300 mb-2">Search by title, difficulty, or tag</p>
+            <div className="flex flex-col md:flex-row gap-4">
+              {/* Search */}
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                <Input
+                  placeholder="Search questions…"
+                  value={searchTerm}
+                  onChange={e => { setSearchTerm(e.target.value); setPage(1) }}
+                  className="pl-10 bg-slate-700"
+                />
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-5 w-5" />
-                  <Input
-                    placeholder="Search problems..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-12 bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-purple-400 h-12"
-                  />
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Filter className="h-5 w-5 text-slate-400" />
-                  <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
-                    <SelectTrigger className="w-40 bg-slate-700/50 border-slate-600 text-white h-12">
-                      <SelectValue placeholder="Difficulty" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-slate-700">
-                      <SelectItem value="all" className="text-white">All Levels</SelectItem>
-                      <SelectItem value="easy" className="text-green-400">Easy</SelectItem>
-                      <SelectItem value="medium" className="text-yellow-400">Medium</SelectItem>
-                      <SelectItem value="hard" className="text-red-400">Hard</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
+
+              {/* Difficulty */}
+              <Select
+                value={difficultyFilter}
+                onValueChange={val => { setDifficulty(val); setPage(1) }}
+              >
+                <SelectTrigger className="w-40 bg-slate-700">
+                  <SelectValue placeholder="Difficulty" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800">
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="easy">Easy</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="hard">Hard</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Tag */}
+              <Select
+                value={tagFilter}
+                onValueChange={val => { setTagFilter(val); setPage(1) }}
+              >
+                <SelectTrigger className="w-40 bg-slate-700">
+                  <SelectValue placeholder="Tag" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 max-h-60 overflow-auto">
+                  <SelectItem value="all">All</SelectItem>
+                  {allTags.map(tag => (
+                    <SelectItem key={tag} value={tag}>{tag}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Sort */}
+              <Select
+                value={sortOrder}
+                onValueChange={val => { setSortOrder(val); setPage(1) }}
+              >
+                <SelectTrigger className="w-40 bg-slate-700">
+                  <SelectValue placeholder="Sort" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800">
+                  <SelectItem value="newest">Newest</SelectItem>
+                  <SelectItem value="oldest">Oldest</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </Card>
 
           {/* Problems Table */}
-          <Card className="border-slate-700 bg-slate-800/30 backdrop-blur-lg animate-fade-in">
-            <CardContent className="p-0">
-              <div className="rounded-md border border-slate-700">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-slate-700 hover:bg-slate-800/50">
-                      <TableHead className="text-slate-300">Problem</TableHead>
-                      <TableHead className="text-slate-300">Difficulty</TableHead>
-                      <TableHead className="text-slate-300">Tags</TableHead>
-                      <TableHead className="text-slate-300">Created</TableHead>
-                      {canManageProblems && <TableHead className="text-slate-300">Actions</TableHead>}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {/* The `map` function now iterates over our hardcoded `problemsData.data` array */}
-                    {problemsData?.data.map((problem) => (
-                      <TableRow key={problem.id} className="border-slate-700 hover:bg-slate-800/30 transition-colors duration-200">
-                        <TableCell>
-                          <Link
-                            to={ROUTES.PROBLEM_DETAIL(problem.id)}
-                            className="font-medium text-purple-400 hover:text-purple-300 hover:underline transition-colors duration-200 flex items-center space-x-2"
-                          >
-                            {getDifficultyIcon(problem.difficulty)}
-                            <span>{problem.title}</span>
-                          </Link>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={getDifficultyBadgeVariant(problem.difficulty)} className="font-medium">
-                            {problem.difficulty.toUpperCase()}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-1 flex-wrap">
-                            {problem.tags.slice(0, 3).map((tag) => (
-                              <Badge key={tag} variant="outline" className="text-xs border-slate-600 text-slate-300">
-                                {tag}
-                              </Badge>
-                            ))}
-                            {problem.tags.length > 3 && (
-                              <Badge variant="outline" className="text-xs border-slate-600 text-slate-300">
-                                +{problem.tags.length - 3}
-                              </Badge>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-slate-400">
-                          {new Date(problem.createdAt).toLocaleDateString()}
-                        </TableCell>
-                        {canManageProblems && (
-                          <TableCell>
-                            <div className="flex items-center space-x-2">
-                              <Link to={ROUTES.PROBLEM_DETAIL(problem.id)}>
-                                <Button variant="ghost" size="icon" className="text-slate-400 hover:text-purple-400 hover:bg-slate-700/50">
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                              </Link>
-                              <Link to={ROUTES.EDIT_PROBLEM(problem.id)}>
-                                <Button variant="ghost" size="icon" className="text-slate-400 hover:text-blue-400 hover:bg-slate-700/50">
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                              </Link>
-                              <Button variant="ghost" size="icon" className="text-slate-400 hover:text-red-400 hover:bg-slate-700/50">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
+          <Card className="bg-slate-800">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-slate-700">
+                  <TableHead>Status</TableHead>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Difficulty</TableHead>
+                  <TableHead>Tags</TableHead>
+                  <TableHead>Acceptance</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {problems.map((p, i) => (
+                  <TableRow key={p._id} className="even:bg-slate-900">
+                    <TableCell>
+                    {p.status === 'Accepted' ? (
+                      <CheckCircle className="text-green-400" />
+                    ) : p.status === 'Rejected' ? (
+                      <XCircle className="text-red-400" />
+                    ) : p.status === 'Pending' ? (
+                      <Clock className="text-yellow-400" />
+                    ) : (
+                      <span className="text-gray-500">–</span> // Not logged in
+                    )}
+                  </TableCell>
+            
+                    <TableCell>
+                      <Link
+                        to={`/problems/${p._id}`}
+                        className="text-purple-400 hover:underline"
+                      >
+                        {p.title}
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <span className={getDifficultyColor(p.difficulty)}>
+                        {p.difficulty.toUpperCase()}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1 flex-wrap">
+                        {p.tags.slice(0, 2).map(t => (
+                          <Badge key={t} variant="outline">{t}</Badge>
+                        ))}
+                        {p.tags.length > 2 && (
+                          <Badge variant="outline">+{p.tags.length - 2}</Badge>
                         )}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
+                      </div>
+                    </TableCell>
+                    <TableCell>{p.acceptanceRate}%</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </Card>
+
+          {/* Pagination */}
+          <div className="flex justify-between items-center mt-6 text-gray-400">
+            <span>
+              Showing {startItem}–{endItem} of {total} problems
+            </span>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(old => Math.max(1, old - 1))}
+                disabled={page === 1}
+              >
+                <ChevronLeft />
+              </Button>
+              {[...Array(totalPages)].map((_, idx) => (
+                <Button
+                  key={idx}
+                  variant={idx + 1 === page ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setPage(idx + 1)}
+                >
+                  {idx + 1}
+                </Button>
+              ))}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(old => Math.min(totalPages, old + 1))}
+                disabled={page === totalPages}
+              >
+                <ChevronRight />
+              </Button>
+            </div>
+          </div>
+
         </div>
       </div>
     </Layout>
-  );
-};
-
-export default ProblemsPage;
+  )
+}
